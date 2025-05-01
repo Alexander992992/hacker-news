@@ -10,43 +10,74 @@
     <div class="timeby">
       {{ info.time }} by {{ info.by }}
     </div>
-    <div class="descendants">
-      Комментарии ({{ info.descendants }}):
+    <div class="descendants" @click="refreshComments">
+      Комментарии ({{ info.descendants }})
     </div>
-    <div class="comments" v-for="comment in comments" :key="comment.id">
-      {{ comment.text }}
+    <div class="comments-container">
+      <comment-item
+          v-for="comment in comments"
+          :key="comment.id"
+          :comment="comment"
+      />
     </div>
   </div>
 </template>
-<script>
 
-import {useNewsStore} from "@/stores/NewsStore";
+<script>
+import { useNewsStore } from "@/stores/NewsStore";
 import { useRoute } from 'vue-router';
 import { ref } from 'vue';
+import CommentItem from '@/pages/CommentItem.vue';
 
 export default {
+  components: {
+    CommentItem
+  },
   data() {
     const route = useRoute();
     return {
       store: useNewsStore(),
       info: {},
       idNews: route.params.id,
-      comments: ref([])
+      comments: ref([]),
+      refreshInterval: null,
+      isRefreshing: false
     }
   },
   methods: {
     async fetchInfo() {
       this.info = await this.store.fetchNewsInfo(this.idNews);
+      await this.fetchComments();
+    },
+    async fetchComments() {
       if (this.info.kids) {
         this.comments = await this.store.fetchComments(this.info.kids);
       }
     },
+    startAutoRefresh() {
+      this.fetchInfo();
+      this.refreshInterval = setInterval(() => {
+        this.fetchComments();
+      }, 60000);
+    },
+    async refreshComments() {
+      this.isRefreshing = true;
+      try {
+        await this.fetchComments();
+      } finally {
+        this.isRefreshing = false;
+      }
+    }
   },
-  mounted() {
-    this.fetchInfo()
+  async mounted() {
+    this.startAutoRefresh();
+  },
+  beforeUnmount() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 }
-
 </script>
 
 <style scoped>
@@ -57,21 +88,31 @@ export default {
   flex-direction: column;
   gap: 10px;
 }
+
 .title {
   text-align: center;
   font-size: 30px;
 }
+
 .url {
   all: unset;
-  cursor: pointer;
-}
-.comments {
-  background: #2e2f30;
-  border: 1px solid black;
-  box-shadow: 0px 0px 10px black;
-  border-radius: 3px;
-  padding: 5px;
 }
 
+.comments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.descendants {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.descendants:hover {
+  color: #9a9e9a;
+}
 
 </style>

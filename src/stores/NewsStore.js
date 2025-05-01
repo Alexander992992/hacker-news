@@ -11,8 +11,8 @@ export const useNewsStore = defineStore("newsStore", {
     }),
     actions: {
         async fetchNewsList() {
-            const response = await axios.get('https://hacker-news.firebaseio.com/v0/newstories.json');
-            if (this.idLast != response.data[0]) {
+            const response = await axios.get('https://hacker-news.firebaseio.com/v0/maxitem.json');
+            if (this.idLast != response.data) {
                 this.idLast = response.data[0]
                 this.isLoading1 = true
                 try {
@@ -48,7 +48,8 @@ export const useNewsStore = defineStore("newsStore", {
             return {
                 id: response.data.id,
                 text: response.data.text,
-                kids: response.data.kids
+                kids: response.data.kids,
+                by: response.data.by
             }
         },
         async fetchComments(ids) {
