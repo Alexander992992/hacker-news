@@ -12,6 +12,7 @@
     </div>
     <div class="descendants" @click="refreshComments">
       Комментарии ({{ info.descendants }})
+      <div v-if="isRefreshing">Обновление...</div>
     </div>
     <div class="comments-container">
       <comment-item
