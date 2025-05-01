@@ -48,7 +48,7 @@ export const useNewsStore = defineStore("newsStore", {
             return {
                 id: response.data.id,
                 text: response.data.text,
-                kids: response.data.kids,
+                kids: response.data.kids
             }
         },
         async fetchComments(ids) {
